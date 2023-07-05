@@ -255,14 +255,15 @@ if (isset($_POST['status'])) {
                                                         <th>Created At</th>
                                                         <th class="table-plus datatable-nosort">Id</th>
                                                         <th>Amount</th>
-                                                        <th>Currency
+                                                        <th>Currency</th>
+                                                        <th>Product</th>
                                                         <th>Status</th>
                                                         <th>Coupon Code</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                    $useremail = _getsingleuser($_id, '_useremail');
+                                                    $useremail = _getsingleuser($_id, '_userphone');
                                                     _getTranscationsForUser($useremail);
                                                     ?>
                                                 </tbody>

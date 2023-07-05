@@ -65,8 +65,9 @@ require('includes/_functions.php');
                             <thead>
                                 <tr>
                                     <th>Created At</th>
-                                    <th class="table-plus datatable-nosort">Id</th>
-                                    <th>Usermail</th>
+                                    <th class="table-plus datatable-nosort">Payment Id</th>
+                                    <th>User</th>
+                                    <th>Product</th>
                                     <th>Amount</th>
                                     <th>Currency
                                     <th>Status</th>

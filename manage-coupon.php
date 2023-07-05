@@ -169,7 +169,7 @@ if (isset($_POST['submit'])) {
                                                             style="width: 100%;">
                                                             <option>Select Service</option>
                                                             <option value="ecommerce">Ecommerce</option>
-                                                            <option value="lms">LMS</option>
+                                                            <option value="course">LMS</option>
                                                             <option value="membership">Membership</option>
                                                         </select>
                                                     </div>

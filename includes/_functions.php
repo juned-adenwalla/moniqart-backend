@@ -2,48 +2,95 @@
 
 
 /* Auth Functions */
-function _login($userpassword, $useremail)
-{
+// function _login($userpassword, $useremail)
+// {
+//     require('_config.php');
+//     require('_alert.php');
+//     if ($userpassword && $useremail != '') {
+//         $enc_password = md5($userpassword);
+//         $sql = "SELECT * FROM `tblusers` WHERE `_userstatus` = 'true' AND `_userpassword` = '$enc_password' AND `_useremail` = '$useremail' AND `_usertype`=2 ";
+//         $query = mysqli_query($conn, $sql);
+//         if ($query) {
+//             $count = mysqli_num_rows($query);
+//             if ($count >= 1) {
+//                 foreach ($query as $data) {
+//                     $usertype = $data['_usertype'];
+//                     $userverify = $data['_userverify'];
+//                     $userid = $data['_id'];
+//                     $useremail = $data['_useremail'];
+//                     $userphone = $data['_userphone'];
+//                     $userpass = $data['_userpassword'];
+//                 }
+//                 $_SESSION['isLoggedIn'] = true;
+//                 $_SESSION['userEmailId'] = $useremail;
+//                 $_SESSION['userPhoneNo'] = $userphone;
+//                 $_SESSION['userPassword'] = $userpass;
+//                 $_SESSION['userType'] = $usertype;
+//                 $_SESSION['userVerify'] = $userverify;
+//                 $_SESSION['userId'] = $userid;
+//                 $alert = new PHPAlert();
+//                 $alert->success("Login Successfull");
+//                 echo "<script>";
+//                 echo "window.location.href = ''";
+//                 echo "</script>";
+//             } else {
+//                 $alert = new PHPAlert();
+//                 $alert->warn("User Type Not Supported");
+//             }
+//         } else {
+//             $alert = new PHPAlert();
+//             $alert->warn("Something Went Wrong");
+//         }
+//     } else {
+//         $alert = new PHPAlert();
+//         $alert->warn("All Feilds are Required");
+//     }
+// }
+
+function _login($userpassword,$useremail){
     require('_config.php');
     require('_alert.php');
-    if ($userpassword && $useremail != '') {
-        $enc_password = md5($userpassword);
-        $sql = "SELECT * FROM `tblusers` WHERE `_userstatus` = 'true' AND `_userpassword` = '$enc_password' AND `_useremail` = '$useremail' AND `_usertype`=2 ";
-        $query = mysqli_query($conn, $sql);
-        if ($query) {
-            $count = mysqli_num_rows($query);
-            if ($count >= 1) {
-                foreach ($query as $data) {
-                    $usertype = $data['_usertype'];
-                    $userverify = $data['_userverify'];
-                    $userid = $data['_id'];
-                    $useremail = $data['_useremail'];
-                    $userphone = $data['_userphone'];
-                    $userpass = $data['_userpassword'];
-                }
+    // Prepare and bind the SELECT statement with prepared statements
+    $query = "SELECT * FROM `tblusers` WHERE `_useremail` = ? LIMIT 1";
+    $stmt = mysqli_prepare($conn, $query);
+    mysqli_stmt_bind_param($stmt, "s", $useremail);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    // Check if the user exists
+    if ($row = mysqli_fetch_assoc($result)) {
+        // Verify the password
+        if (password_verify($userpassword, $row['_userpassword'])) {
+            // Check if the user status is 2 (active user)
+            if ($row['_userstatus'] == 'true' && $row['_usertype'] == 2) {
+                // Start a session for the user
+                session_start();
                 $_SESSION['isLoggedIn'] = true;
-                $_SESSION['userEmailId'] = $useremail;
-                $_SESSION['userPhoneNo'] = $userphone;
-                $_SESSION['userPassword'] = $userpass;
-                $_SESSION['userType'] = $usertype;
-                $_SESSION['userVerify'] = $userverify;
-                $_SESSION['userId'] = $userid;
+                $_SESSION['userEmailId'] = $row['_useremail'];
+                $_SESSION['userPhoneNo'] = $row['_userphone'];
+                $_SESSION['userPassword'] = $row['_userpassword'];
+                $_SESSION['userType'] = $row['_usertype'];
+                $_SESSION['userVerify'] = $row['_userverify'];
+                $_SESSION['userId'] = $row['_id'];
                 $alert = new PHPAlert();
                 $alert->success("Login Successfull");
                 echo "<script>";
                 echo "window.location.href = ''";
                 echo "</script>";
             } else {
+                // User status is not 2 (inactive user)
                 $alert = new PHPAlert();
-                $alert->warn("User Type Not Supported");
+                $alert->warn("Not Allowed, Contact Administrator");
             }
         } else {
+            // Invalid password
             $alert = new PHPAlert();
-            $alert->warn("Something Went Wrong");
+            $alert->warn("Invalid password");
         }
     } else {
+        // User does not exist
         $alert = new PHPAlert();
-        $alert->warn("All Feilds are Required");
+        $alert->warn("User Not Found");
     }
 }
 
@@ -63,14 +110,40 @@ function _logout()
     exit;
 }
 
+// Function to get single detail 
+function singleDetail($tableName, $columnName, $columnValue, $returnColumn){
+    require('_config.php');
+    // Prepare the SQL query
+    $query = "SELECT * FROM `$tableName` WHERE `$columnName` = '$columnValue'";
 
+    // Execute the query
+    $result = mysqli_query($conn, $query);
+
+    // Check if any rows were found
+    if (mysqli_num_rows($result) > 0) {
+        // Fetch the data and return it as an associative array
+        while ($row = mysqli_fetch_assoc($result)){
+            return $row[$returnColumn];
+        }
+    } else {
+        return null;
+    }
+}
+
+// Function limit text 
+function limitText($text, $limit) {
+    if (strlen($text) > $limit) {
+        $text = substr($text, 0, $limit) . "...";
+    }
+    return $text;
+}
 
 function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $userpassword, $useremail)
 {
     require('_alert.php');
     ini_set('display_errors', 1);
     $temp_conn = new mysqli($dbhost, $dbuser, $dbpass);
-    $enc_password = md5($userpassword);
+    $enc_password = password_hash($userpassword, PASSWORD_DEFAULT);
     if ($temp_conn->connect_errno) {
         $alert = new PHPAlert();
         $alert->warn("Database Connection Failed");
@@ -90,7 +163,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             $temp_conn = new mysqli($dbhost, $dbuser, $dbpass, $dbname);
 
             $user_table = "CREATE TABLE IF NOT EXISTS `tblusers` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_username` varchar(255) NULL,
                 `_useremail` varchar(255) NULL,
                 `_userphone` varchar(255) NULL,
@@ -117,9 +190,8 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
                 `UpdationDate` datetime NULL ON UPDATE current_timestamp()
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
-
             $course_table = "CREATE TABLE IF NOT EXISTS `tblcourse` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_coursename` text NOT NULL,
                 `_parmalink` text NOT NULL,
                 `_coursedescription` text NOT NULL,
@@ -147,7 +219,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             )  ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $lessondb = "CREATE TABLE IF NOT EXISTS `tbllessons` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_courseid` varchar(55) NOT NULL,
                 `_lessonname` text NOT NULL,
                 `_lessontype` varchar(55) NOT NULL,
@@ -163,9 +235,8 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
                 `UpdationDate` datetime NULL ON UPDATE current_timestamp()
             )  ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
-
             $category_table = "CREATE TABLE IF NOT EXISTS `tblcategory` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_categoryname` varchar(50) NOT NULL,
                 `_categoryDescription` varchar(100) NOT NULL,
                 `_categorytype` varchar(100) NOT NULL,
@@ -176,7 +247,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $subcategory_table = "CREATE TABLE IF NOT EXISTS `tblsubcategory` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_subcategoryname` varchar(50) NOT NULL,
                 `_categoryid` varchar(20) NOT NULL,
                 `_subcategorydesc` varchar(100) NOT NULL,
@@ -186,7 +257,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $blog_table = "CREATE TABLE IF NOT EXISTS `tblblog` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_blogtitle` varchar(255) NOT NULL,
                 `_parmalink` varchar(255) NOT NULL,
                 `_blogdesc` text NOT NULL,
@@ -202,7 +273,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $sms_config = "CREATE TABLE IF NOT EXISTS `tblsmsconfig` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_suppliername` varchar(50) NOT NULL,
                 `_apikey` varchar(100) NOT NULL,
                 `_baseurl` varchar(100) NOT NULL,
@@ -212,7 +283,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $email_config = "CREATE TABLE IF NOT EXISTS `tblemailconfig` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_hostname` varchar(50) NOT NULL,
                 `_hostport` varchar(50) NOT NULL,
                 `_smtpauth` varchar(50) NOT NULL,
@@ -225,7 +296,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $site_config = "CREATE TABLE IF NOT EXISTS `tblsiteconfig` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_sitetitle` varchar(50) NULL,
                 `_siteemail` varchar(50) NULL,
                 `_sitephone` varchar(50) NULL,
@@ -242,7 +313,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $payment_config = "CREATE TABLE IF NOT EXISTS `tblpaymentconfig` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_suppliername` varchar(50) NOT NULL,
                 `_apikey` varchar(100) NOT NULL,
                 `_secretkey` varchar(100) NOT NULL,
@@ -253,7 +324,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $templates = "CREATE TABLE IF NOT EXISTS `tblemailtemplates` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_purchasetemplate` text NOT NULL,
                 `_remindertemplate` text NOT NULL,
                 `_lecturetemplate` text NOT NULL,
@@ -264,28 +335,8 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
                 `UpdationDate` datetime NULL ON UPDATE current_timestamp()
             )  ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
-            $pageSettings = "CREATE TABLE IF NOT EXISTS `tblpagesettings` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
-                `_aboutuspage` text NOT NULL,
-                `_contactuspage` text NOT NULL,
-                `_privacypolicypage` text NOT NULL,
-                `_termsandconditionpage` text NOT NULL,
-                `CreationDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                `UpdationDate` datetime NULL ON UPDATE current_timestamp()
-            )  ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-
-            $homepagesettingsDB = "CREATE TABLE IF NOT EXISTS `tblhomepagesettings` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
-                `_bannertitle` varchar(255) NOT NULL,
-                `_bannerimg` varchar(255) NULL,
-                `CreationDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                `UpdationDate` datetime NULL ON UPDATE current_timestamp()
-            )  ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-
-
-
             $currency_table = "CREATE TABLE IF NOT EXISTS `tblcurrency` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_conversioncurrency` text NOT NULL,
                 `_price` varchar(255) NULL,
                 `_status` varchar(50) NOT NULL DEFAULT 'open',
@@ -294,7 +345,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             )  ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $tax_table = "CREATE TABLE IF NOT EXISTS `tbltaxes` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_taxname` varchar(255) NOT NULL,
                 `_taxtype` text NOT NULL,
                 `_taxamount` varchar(255) NULL,
@@ -304,7 +355,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             )  ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $payment_trans = "CREATE TABLE IF NOT EXISTS `tblpayment` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_razorpayid` varchar(100) NOT NULL,
                 `_useremail` varchar(255) NOT NULL,
                 `_amount` varchar(255) NULL,
@@ -319,7 +370,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             )  ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $coupon_table = "CREATE TABLE IF NOT EXISTS `tblcoupon` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_couponname` varchar(255) NOT NULL,
                 `_coupontype` text NOT NULL,
                 `_couponamount` varchar(255) NULL,
@@ -333,7 +384,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             )  ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $coupon_trans = "CREATE TABLE IF NOT EXISTS `tblcoupontrans` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_couponname` varchar(255) NOT NULL,
                 `_couponamount` varchar(255) NULL,
                 `_couponcurrency` varchar(255) NULL,
@@ -344,7 +395,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             )  ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $purchasecoursedb = "CREATE TABLE IF NOT EXISTS `tblpurchasedcourses` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_courseid` varchar(55) NOT NULL, 
                 `_userid` varchar(55) NOT NULL, 
                 `_coursestatus` varchar(100) NOT NULL,
@@ -353,7 +404,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
             )  ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             $pendingCetificatedDB = "CREATE TABLE IF NOT EXISTS `tblpendingcertificate` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_userid` varchar(255) NOT NULL,
                 `_courseid` varchar(255) NULL,
                 `_emailid` varchar(255) NULL,
@@ -364,8 +415,9 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
 
 
             $membership_table = "CREATE TABLE IF NOT EXISTS `tblmembership` (
-                `_id` BIGINT(20) UNSIGNED ZEROFILL PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                `_id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
                 `_membershipname` varchar(100) NOT NULL,
+                `_membershippermalink` varchar(200) NOT NULL,
                 `_membershipdesc` text NOT NULL,
                 `_img` varchar(55) NOT NULL,
                 `_price` varchar(55) NOT NULL,
@@ -377,7 +429,7 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
                 `UpdationDate` datetime NULL ON UPDATE current_timestamp()
             )  ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
-            $tables = [$user_table, $course_table, $category_table, $subcategory_table, $blog_table, $sms_config, $email_config, $site_config, $payment_config, $templates, $pageSettings, $homepagesettingsDB, $lessondb, $currency_table, $tax_table, $payment_trans, $coupon_table, $coupon_trans, $purchasecoursedb, $pendingCetificatedDB, $membership_table];
+            $tables = [$user_table, $course_table, $category_table, $subcategory_table, $blog_table, $sms_config, $email_config, $site_config, $payment_config, $templates, $lessondb, $currency_table, $tax_table, $payment_trans, $coupon_table, $coupon_trans, $purchasecoursedb, $pendingCetificatedDB, $membership_table];
 
             foreach ($tables as $k => $sql) {
                 $query = @$temp_conn->query($sql);
@@ -403,11 +455,8 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
 
                 $template_data = "INSERT INTO `tblemailtemplates`(`_purchasetemplate`, `_remindertemplate`, `_lecturetemplate`, `_signuptemplate`, `_canceltemplate`, `_paymenttemplate`) VALUES ('Your Html Code','Your Html Code','Your Html Code','Your Html Code','Your Html Code','Your Html Code')";
 
-                $pageSettingsData = "INSERT INTO `tblpagesettings`(`_aboutuspage`, `_contactuspage`, `_privacypolicypage`, `_termsandconditionpage`) VALUES ('About us Page','Contact Us Page','Privacy Policy Page','Terms and Conditions Page')";
 
-                $homePageSettingsData = "INSERT INTO `tblhomepagesettings`(`_bannertitle`, `_bannerimg`) VALUES ('Banner Title','Banner Image')";
-
-                $data = [$user_data, $sms_data, $email_data, $site_data, $payment_data, $template_data, $pageSettingsData, $homePageSettingsData];
+                $data = [$user_data, $sms_data, $email_data, $site_data, $payment_data, $template_data];
 
                 foreach ($data as $k => $sql) {
                     $query = @$temp_conn->query($sql);
@@ -443,7 +492,6 @@ function _install($dbhost, $dbname, $dbpass, $dbuser, $siteurl, $username, $user
         }
     }
 }
-
 
 
 /* User Functions */
@@ -2505,15 +2553,6 @@ function _updatecoupon($id, $status)
 }
 
 
-
-
-
-
-
-
-
-// Transcations
-
 // Transcations
 
 
@@ -2522,7 +2561,7 @@ function _getTranscations()
 
     require('_config.php');
 
-    $sql = "SELECT * FROM `tblpayment`   ";
+    $sql = "SELECT * FROM `tblpayment`";
     $query = mysqli_query($conn, $sql);
     if ($query) {
         foreach ($query as $data) {
@@ -2530,29 +2569,30 @@ function _getTranscations()
             <tr style="margin-bottom:-25px">
 
                 <td>
-                    <?php echo date("M j, Y", strtotime($data['CreationDate'])); ?>
+                    <?php echo date("M j, Y (H:i:s)", strtotime($data['CreationDate'])); ?>
                 </td>
 
                 <td><?php echo $data['_razorpayid']; ?></td>
-                <td><?php echo $data['_useremail']; ?></td>
+                <td><a target="_blank" href="edit-user?id=<?php echo singleDetail('tblusers', '_userphone', $data['_useremail'], '_id'); ?>"><?php echo singleDetail('tblusers', '_userphone', $data['_useremail'], '_username'); ?></a></td>
+                <td><?php
+                  if($data['_producttype'] == 'membership'){ ?>
+                    <a target="_blank" href="edit-membership?id=<?php echo $data['_productid']; ?>"><?php echo limitText(singleDetail('tblmembership', '_id', $data['_productid'], '_membershipname'),50); ?></a>
+                  <?php } else{ ?>
+                    <a target="_blank" href="edit-course?id=<?php echo $data['_productid']; ?>"><?php echo limitText(singleDetail('tblcourse', '_id', $data['_productid'], '_coursename'),50); ?></a>
+                  <?php } 
+                ?></td>
                 <td><?php echo $data['_amount']; ?></td>
                 <td><?php echo $data['_currency']; ?></td>
 
                 <td>
                     <div>
                         <?php
-
                         $status = $data['_status'];
-                        if ($status == true) {
-                            ?>
-                            <input type="checkbox" disabled checked data-size="small" value="true" name="isactive" class="switch-btn" data-color="#f56767">
-                        <?php
-                        } else {
-                            ?>
-                            <input type="checkbox" disabled data-size="small" value="true" name="isactive" class="switch-btn" data-color="#f56767">
-                        <?php
-                        }
-                        ?>
+                        if ($status == 'success') {?>
+                          <span class="badge bg-success">Success</span>  
+                        <?php } else {?>
+                            <span class="badge bg-danger">Failed</span>  
+                        <?php } ?>
                     </div>
                 </td>
 
@@ -2578,30 +2618,30 @@ function _getTranscationsForUser($useremail)
                   <tr style="margin-bottom:-25px">
 
                       <td>
-                          <?php echo date("M j, Y", strtotime($data['CreationDate'])); ?>
+                          <?php echo date("M j, Y (H:i:s)", strtotime($data['CreationDate'])); ?>
                       </td>
 
                       <td><?php echo $data['_razorpayid']; ?></td>
                       <td><?php echo $data['_amount']; ?></td>
                       <td><?php echo $data['_currency']; ?></td>
-
+                      <td><?php
+                        if($data['_producttype'] == 'membership'){ ?>
+                            <a target="_blank" href="edit-membership?id=<?php echo $data['_productid']; ?>"><?php echo limitText(singleDetail('tblmembership', '_id', $data['_productid'], '_membershipname'),50); ?></a>
+                        <?php } else{ ?>
+                            <a target="_blank" href="edit-course?id=<?php echo $data['_productid']; ?>"><?php echo limitText(singleDetail('tblcourse', '_id', $data['_productid'], '_coursename'),50); ?></a>
+                        <?php } 
+                       ?></td>
                       <td>
-                          <div>
-                              <?php
-
-                              $status = $data['_status'];
-                              if ($status == true) {
-                                  ?>
-                                  <input type="checkbox" disabled checked data-size="small" value="true" name="isactive" class="switch-btn" data-color="#f56767">
-                              <?php
-                              } else {
-                                  ?>
-                                  <input type="checkbox" disabled data-size="small" value="true" name="isactive" class="switch-btn" data-color="#f56767">
-                              <?php
-                              }
-                              ?>
-                          </div>
-                      </td>
+                        <div>
+                            <?php
+                            $status = $data['_status'];
+                            if ($status == 'success') {?>
+                            <span class="badge bg-success">Success</span>  
+                            <?php } else {?>
+                                <span class="badge bg-danger">Failed</span>  
+                            <?php } ?>
+                        </div>
+                     </td>
 
                       <td><?php echo $data['_couponcode']; ?></td>
 
@@ -2800,9 +2840,10 @@ function _createMembership($membershipname, $img, $membershipdesc, $duration, $d
 {
     require('_config.php');
     require('_alert.php');
+    $memlink = strtolower(str_replace(array(' ', '.', '&'), '-', $membershipname));
 
-    $stmt = $conn->prepare("INSERT INTO `tblmembership` (`_membershipname`, `_img`,`_membershipdesc`, `_price`, `_benefit`, `_benefittype`, `_duration`, `_status`) VALUES (?, ?,?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssssss", $membershipname, $img, $membershipdesc, $price, $discount, $discounttype, $duration, $isactive);
+    $stmt = $conn->prepare("INSERT INTO `tblmembership` (`_membershipname`, `_membershippermalink`, `_img`,`_membershipdesc`, `_price`, `_benefit`, `_benefittype`, `_duration`, `_status`) VALUES (?, ?, ?,?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssssssss", $membershipname, $memlink, $img, $membershipdesc, $price, $discount, $discounttype, $duration, $isactive);
 
     $stmt->execute();
 
