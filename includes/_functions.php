@@ -551,7 +551,7 @@ function _getuser()
 
 
     require('_config.php');
-    $sql = "SELECT * FROM `tblusers` ORDER BY `CreationDate` ASC  ";
+    $sql = "SELECT * FROM `tblusers` ORDER BY CreationDate DESC";
     $query = mysqli_query($conn, $sql);
     if ($query) {
         foreach ($query as $data) { ?>
@@ -676,7 +676,7 @@ function _updateuser($username, $useremail, $userpassword, $usertype, $userphone
     require('_config.php');
     require('_alert.php');
 
-    $encpassword = md5($userpassword);
+    $encpassword = password_hash($userpassword, PASSWORD_DEFAULT);;
 
     $sql = "UPDATE `tblusers` SET `_username`='$username' , `_useremail`='$useremail', `_userpassword`='$encpassword' , `_userphone`='$userphone' 
     , `_usertype`='$usertype' , `_userstatus`='$isactive' , `_userverify`='$isverified' WHERE `_id` = $_id";
@@ -755,7 +755,7 @@ function _showCourses($_courseid = '')
 
     if ($_courseid != '') {
 
-        $sql = "SELECT * FROM `tblcourse` ORDER BY `CreationDate` ASC   ";
+        $sql = "SELECT * FROM `tblcourse` ORDER BY CreationDate DESC";
 
         $query = mysqli_query($conn, $sql);
         if ($query) {
@@ -814,7 +814,7 @@ function _getAllCourses()
 
 
     require('_config.php');
-    $sql = "SELECT * FROM `tblcourse` ";
+    $sql = "SELECT * FROM `tblcourse` ORDER BY CreationDate DESC";
     $query = mysqli_query($conn, $sql);
     if ($query) {
         foreach ($query as $data) { ?>
@@ -972,8 +972,6 @@ function _getTeachers($id = '')
 
 
 
-
-
 // Category Functions
 
 function _createCategory($categoryname, $categoryDesc, $categoryimg, $isactive, $_categorytype)
@@ -1014,7 +1012,7 @@ function _getCategory()
 {
     require('_config.php');
 
-    $sql = "SELECT * FROM `tblcategory` ORDER BY `CreationDate` ASC  ";
+    $sql = "SELECT * FROM `tblcategory` ORDER BY CreationDate DESC";
 
     $query = mysqli_query($conn, $sql);
     if ($query) {
@@ -1455,7 +1453,7 @@ function _getBlogs()
 {
     require('_config.php');
 
-    $sql = "SELECT * FROM `tblblog` ORDER BY `CreationDate` ASC  ";
+    $sql = "SELECT * FROM `tblblog` ORDER BY CreationDate DESC";
     $query = mysqli_query($conn, $sql);
     if ($query) {
 
@@ -1907,7 +1905,7 @@ function _getLessons($courseid)
 
     require('_config.php');
 
-    $sql = "SELECT * FROM `tbllessons` where `_courseid`='$courseid' ";
+    $sql = "SELECT * FROM `tbllessons` where `_courseid`='$courseid' ORDER BY CreationDate DESC";
 
     $query = mysqli_query($conn, $sql);
 
@@ -2137,7 +2135,7 @@ function _getmarkup()
 {
     require('_config.php');
 
-    $sql = "SELECT * FROM `tblcurrency` ";
+    $sql = "SELECT * FROM `tblcurrency` ORDER BY CreationDate DESC";
     $query = mysqli_query($conn, $sql);
     if ($query) {
         foreach ($query as $data) { ?>
@@ -2256,7 +2254,7 @@ function _gettaxmarkup()
 {
     require('_config.php');
 
-    $sql = "SELECT * FROM `tbltaxes`";
+    $sql = "SELECT * FROM `tbltaxes` ORDER BY CreationDate DESC";
 
     $query = mysqli_query($conn, $sql);
     if ($query) {
@@ -2342,30 +2340,6 @@ function _gettaxes()
     }
 }
 
-function _gettotal($sub, $currency, $discount)
-{
-    require('_config.php');
-    $sql = "SELECT * FROM `tbltaxes` WHERE `_status` = 'true'";
-    $query = mysqli_query($conn, $sql);
-    if ($query) {
-        $tax = array();
-        foreach ($query as $data) {
-            if ($data['_taxtype'] == 'Variable') {
-                $tax[] = ($data['_taxamount'] / 100) * $sub;
-            } else {
-                $tax[] = _conversion($data['_taxamount'], $currency);
-            }
-        }
-
-        $final = $sub - $discount; // if not put it in else
-
-        $arrtotal = $final + array_sum($tax);
-        if ($arrtotal < 0) {
-            $arrtotal = 0;
-        }
-        return $arrtotal;
-    }
-}
 
 
 // Coupon Functions 
@@ -2389,7 +2363,7 @@ function _getcoupon()
 {
     require('_config.php');
 
-    $sql = "SELECT * FROM `tblcoupon` ";
+    $sql = "SELECT * FROM `tblcoupon` ORDER BY CreationDate DESC";
     $query = mysqli_query($conn, $sql);
     if ($query) {
         foreach ($query as $data) { ?>
@@ -2447,92 +2421,6 @@ function _deletecoupon($id)
     }
 }
 
-function _validatecoupon($amount, $coupon, $currency, $prod)
-{
-    require('_config.php');
-    require('_alert.php');
-    $sql = "SELECT * FROM `tblcoupon` WHERE `_couponname` = '$coupon'";
-    $query = mysqli_query($conn, $sql);
-    if ($query) {
-        $count = mysqli_num_rows($query);
-        if ($count >= 1) {
-            foreach ($query as $data) {
-                $vamount = $data['_conamount'];
-                $vcondition = $data['_couponcondition'];
-                $vlimit = $data['_maxusage'];
-                $vusage = $data['_totaluse'];
-                $vdiscount = $data['_couponamount'];
-                $coupontype = $data['_coupontype'];
-                $couponprod = $data['_couponprod'];
-            }
-            $vamount = _conversion($vamount, $currency);
-            if ($prod == $couponprod) {
-                if ($vusage < $vlimit) {
-                    if ($vcondition == 'less') {
-                        if ($amount < $vamount) {
-                            if ($coupontype == 'Variable') {
-                                $discount = ($vdiscount / 100) * $amount;
-                                return $discount;
-                            }
-                            if ($coupontype == 'Fixed') {
-                                $discount = _conversion($vdiscount, $currency);
-                                return $discount;
-                            }
-                            if ($coupontype == 'Uncertain') {
-                                $numbers = range(0, $vdiscount);
-                                shuffle($numbers);
-                                $famount = array_slice($numbers, 0, 1);
-                                $discount = _conversion($famount[0], $currency);
-                                return $discount;
-                            }
-                        } else {
-                            return null;
-                        }
-                    }
-                    if ($vcondition == 'more') {
-                        if ($amount >= $vamount) {
-                            if ($coupontype == 'Variable') {
-                                $discount = ($vdiscount / 100) * $amount;
-                                return $discount;
-                            }
-                            if ($coupontype == 'Fixed') {
-                                $discount = _conversion($vdiscount, $currency);
-                                return $discount;
-                            }
-                            if ($coupontype == 'Uncertain') {
-                                $numbers = range(30, $vdiscount);
-                                shuffle($numbers);
-                                $famount = array_slice($numbers, 0, 1);
-                                $discount = _conversion($famount[0], $currency);
-                                return $discount;
-                            }
-                        } else {
-                            return null;
-                        }
-                    }
-                } else {
-                    return null;
-                }
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
-}
-
-function _coupon($amount, $coupon, $currency)
-{
-    require('_config.php');
-    $useremail = $_SESSION['userEmailId'];
-    $sql = "INSERT INTO `tblcoupontrans`(`_couponname`, `_couponamount`, `_couponcurrency`, `_couponstatus`, `_useremail`) VALUES ('$coupon','$amount','$currency','pending','$useremail')";
-    $query = mysqli_query($conn, $sql);
-    if ($query) {
-        return $conn->insert_id;
-    }
-}
-
 function _updatecoupon($id, $status)
 {
     require('_config.php');
@@ -2561,7 +2449,7 @@ function _getTranscations()
 
     require('_config.php');
 
-    $sql = "SELECT * FROM `tblpayment`";
+    $sql = "SELECT * FROM `tblpayment` ORDER BY CreationDate DESC";
     $query = mysqli_query($conn, $sql);
     if ($query) {
         foreach ($query as $data) {
@@ -2604,13 +2492,12 @@ function _getTranscations()
     }
 }
 
-
 function _getTranscationsForUser($useremail)
 {
 
     require('_config.php');
 
-    $sql = "SELECT * FROM `tblpayment` where `_useremail`='$useremail'  ";
+    $sql = "SELECT * FROM `tblpayment` where `_useremail`='$useremail' ORDER BY CreationDate DESC";
     $query = mysqli_query($conn, $sql);
     if ($query) {
         foreach ($query as $data) {
@@ -2651,43 +2538,13 @@ function _getTranscationsForUser($useremail)
     }
 }
 
-
-
-function _getSingleTranscations($id, $param)
-{
-
-    require('_config.php');
-    $sql = "SELECT * FROM `tblpayment` WHERE `_id` = $id";
-    $query = mysqli_query($conn, $sql);
-    if ($query) {
-        foreach ($query as $data) {
-            return $data[$param];
-        }
-    }
-}
-
-function _updateTranscation($_id, $useremail, $amount, $couponcode, $currency, $isactive)
-{
-    require('_config.php');
-    require('_alert.php');
-    $sql = "UPDATE `tblpayment` SET `_useremail`='$useremail' , `_amount`='$amount' , `_currency`='$currency' , `_couponcode`='$couponcode' , `_status`='$isactive' WHERE `_id` = '$_id'";
-    $query = mysqli_query($conn, $sql);
-    if ($query) {
-        $alert = new PHPAlert();
-        $alert->success("Transcation Updated");
-    } else {
-        $alert = new PHPAlert();
-        $alert->warn("Something went wrong");
-    }
-}
-
 function _getCouponTranscation()
 {
 
     require('_config.php');
 
 
-    $sql = "SELECT * FROM `tblcoupontrans` ";
+    $sql = "SELECT * FROM `tblcoupontrans` ORDER BY CreationDate DESC";
     $query = mysqli_query($conn, $sql);
 
     if ($query) {
@@ -2705,19 +2562,6 @@ function _getCouponTranscation()
                       <td><?php echo $data['_couponstatus']; ?></td>
                   </tr>
               <?php
-        }
-    }
-}
-
-function _getSingleCouponTranscations($id, $param)
-{
-
-    require('_config.php');
-    $sql = "SELECT * FROM `tblcoupontrans` WHERE `_id` = $id";
-    $query = mysqli_query($conn, $sql);
-    if ($query) {
-        foreach ($query as $data) {
-            return $data[$param];
         }
     }
 }
@@ -2741,21 +2585,6 @@ function _updateCouponTranscation($_id, $couponname, $couponamount, $useremail)
     }
 }
 
-function _payment($amount, $currency, $coupon = '', $prod, $prodid)
-{
-    if ($prod == 'membership') {
-        // $prodname = _getSingleMembership($prodid, '_membershipname');
-    }
-
-    require('_config.php');
-    $useremail = $_SESSION['userEmailId'];
-    $sql = "INSERT INTO `tblpayment`(`_useremail`, `_amount`, `_currency`, `_status`, `_producttitle`, `_productid`, `_producttype`, `_couponcode`) VALUES ('$useremail','$amount','$currency','pending','$prodname', '$prodid', '$prod', '$coupon')";
-    $query = mysqli_query($conn, $sql);
-    if ($query) {
-        return $conn->insert_id;
-    }
-}
-
 function _updatepayment($id, $status)
 {
     require('_config.php');
@@ -2776,7 +2605,7 @@ function _getUserCourses($id)
 
     require('_config.php');
 
-    $sql = "SELECT * FROM `tblpurchasedcourses` where `_userid`='$id'  ";
+    $sql = "SELECT * FROM `tblpurchasedcourses` where `_userid`='$id' ORDER BY CreationDate DESC";
     $query = mysqli_query($conn, $sql);
     if ($query) {
         foreach ($query as $data) {
@@ -2862,7 +2691,7 @@ function _getMembership()
 {
     require('_config.php');
 
-    $sql = "SELECT * FROM `tblmembership` ";
+    $sql = "SELECT * FROM `tblmembership` ORDER BY CreationDate DESC";
     $query = mysqli_query($conn, $sql);
     if ($query) {
         foreach ($query as $data) { ?>

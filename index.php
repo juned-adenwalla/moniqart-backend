@@ -51,7 +51,7 @@ require('includes/_functions.php');
 	<?php require("templates/_sidebar.php") ?>
 
 
-	<div class="main-container">
+	<!-- <div class="main-container">
 		<div class="pd-ltr-20">
 			<div class="card-box pd-20 height-100-p mb-30">
 				<div class="row align-items-center">
@@ -288,7 +288,7 @@ require('includes/_functions.php');
 			<?php require("templates/_footer.php") ?>
 
 		</div>
-	</div>
+	</div> -->
 	<!-- js -->
 
 	<?php require("templates/_js_link.php") ?>

@@ -25,7 +25,7 @@ if (isset($_POST['submit'])) {
 <head>
     <!-- Basic Page Info -->
     <meta charset="utf-8">
-    <title>Installation</title>
+    <title>Management Panel | <?php echo _siteconfig('_sitetitle') ?></title>
 
     <!-- Site favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="vendors/images/apple-touch-icon.png">
@@ -59,7 +59,7 @@ if (isset($_POST['submit'])) {
         <div class="container-fluid d-flex justify-content-between align-items-center">
             <div class="brand-logo">
                 <a href="login.html">
-                    <img src="vendors/images/deskapp-logo.svg" alt="">
+                    <img src="uploads/images/<?php echo _siteconfig('_sitelogo') ?>" alt="">
                 </a>
             </div>
         </div>

@@ -1,8 +1,8 @@
 <div class="left-side-bar">
     <div class="brand-logo">
         <a href="index.html">
-            <img src="vendors/images/deskapp-logo.svg" alt="" class="dark-logo">
-            <img src="vendors/images/deskapp-logo-white.svg" alt="" class="light-logo">
+            <img src="uploads/images/<?php echo _siteconfig('_sitelogo') ?>" alt="" class="dark-logo">
+            <img src="uploads/images/<?php echo _siteconfig('_sitelogo') ?>" alt="" class="light-logo">
         </a>
         <div class="close-sidebar" data-toggle="left-sidebar-close">
             <i class="ion-close-round"></i>
@@ -130,11 +130,11 @@
                     </a>
                     <ul class="submenu">
                         <li><a href="purchase-template">Purchase</a></li>
-                        <li><a href="reminder-template">Reminder</a></li>
+                        <!-- <li><a href="reminder-template">Reminder</a></li>
                         <li><a href="lecture-template">Lecture</a></li>
                         <li><a href="signup-template">Signup</a></li>
                         <li><a href="cancel-template">Cancel</a></li>
-                        <li><a href="payment-template">Payment</a></li>
+                        <li><a href="payment-template">Payment</a></li> -->
                     </ul>
                 </li>
 
