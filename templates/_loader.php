@@ -1,6 +1,6 @@
 <div class="pre-loader">
     <div class="pre-loader-box">
-        <div class="" style="display: flex; align-items: center; justify-content: center; "><img
+        <div class="" style="display: flex; align-items: center; justify-content: center;margin-bottom:10px"><img
                 src="uploads/images/<?php echo _siteconfig('_sitelogo') ?>" style="height: 50px;object-fit: cover;" alt="">
         </div>
         <div class='loader-progress' id="progress_div">

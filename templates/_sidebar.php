@@ -1,8 +1,8 @@
 <div class="left-side-bar">
     <div class="brand-logo">
         <a href="index.html">
-            <img src="uploads/images/<?php echo _siteconfig('_sitelogo') ?>" alt="" class="dark-logo">
-            <img src="uploads/images/<?php echo _siteconfig('_sitelogo') ?>" alt="" class="light-logo">
+            <img style="width: 100px;" src="uploads/images/<?php echo _siteconfig('_sitelogo') ?>" alt="" class="dark-logo">
+            <img style="width: 100px;" src="uploads/images/<?php echo _siteconfig('_sitelogo') ?>" alt="" class="light-logo">
         </a>
         <div class="close-sidebar" data-toggle="left-sidebar-close">
             <i class="ion-close-round"></i>
