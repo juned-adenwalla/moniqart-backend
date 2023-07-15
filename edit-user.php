@@ -29,35 +29,33 @@ if (isset($_POST['submit'])) {
     if (isset($_POST['notify'])) {
         $notify = $_POST['notify'];
     } else {
-        $notify = false;
+        $notify = 'false';
     }
     if (isset($_POST['isactive'])) {
-        $isactive = $_POST['isactive'];
+        $isactive = 'true';
     } else {
-        $isactive = false;
+        $isactive = 'false';
     }
     if (isset($_POST['isverified'])) {
-        $isverified = $_POST['isverified'];
+        $isverified = 'true';
     } else {
-        $isverified = false;
+        $isverified = 'false';
     }
 
     _updateuser($username, $useremail, $userpassword, $usertype, $userphone, $isactive, $isverified, $_id);
 }
 
 if (isset($_POST['status'])) {
-    $status = $_POST['enableOrDisable'];
-    $courseid = $_POST['courseid'];
+    // Retrieve the course ID and status from $_POST
+    $courseId = $_POST['courseid'];
+    $status = $_POST['status'];
 
-    // if ($status == true) {
-    //     $status = '';
-    // } else {
-    //     $status = true;
-    // }
+    // Handle the updated status for the specific course as per your requirement
+    echo "Course ID: " . $courseId . "<br>";
+    echo "Status: " . $status . "<br>";
+    // Perform necessary actions with the updated status
 
-    echo $_id;
-
-    _updateCourseStatus($status, $courseid, $_id);
+    // _updateCourseStatus($status, $courseid, $_id);
 }
 
 
@@ -80,7 +78,7 @@ if (isset($_POST['status'])) {
 
 <body>
     <!-- Loader -->
-    <?php require("templates/_loader.php") ?>
+    <!-- <?php require("templates/_loader.php") ?> -->
 
     <!-- Header -->
     <?php require("templates/_topbar.php") ?>
@@ -166,7 +164,7 @@ if (isset($_POST['status'])) {
                             <?php
 
                             $status = _getsingleuser($_id, '_userstatus');
-                            if ($status == true) {
+                            if ($status == 'true') {
                                 ?>
                                 <input type="checkbox" checked data-size="small" value="true" name="isactive"
                                     class="switch-btn" data-color="#f56767">
@@ -190,7 +188,7 @@ if (isset($_POST['status'])) {
                             <?php
 
                             $status = _getsingleuser($_id, '_userverify');
-                            if ($status == true) {
+                            if ($status == 'true') {
                                 ?>
 
                                 <input type="checkbox" checked data-size="small" value="true" name="isverified"
@@ -240,10 +238,10 @@ if (isset($_POST['status'])) {
                                     <li class="nav-item">
                                         <a class="nav-link" data-toggle="tab" href="#courses" role="tab">Courses</a>
                                     </li>
-                                    <li class="nav-item">
+                                    <!-- <li class="nav-item">
                                         <a class="nav-link" data-toggle="tab" href="#certificates"
                                             role="tab">Certificates</a>
-                                    </li>
+                                    </li> -->
                                 </ul>
                                 <div class="tab-content">
                                     <!-- Transcations start -->
@@ -263,8 +261,8 @@ if (isset($_POST['status'])) {
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                    $useremail = _getsingleuser($_id, '_userphone');
-                                                    _getTranscationsForUser($useremail);
+                                                    $userphone = _getsingleuser($_id, '_userphone');
+                                                    _getTranscationsForUser($userphone);
                                                     ?>
                                                 </tbody>
                                             </table>
@@ -273,7 +271,7 @@ if (isset($_POST['status'])) {
                                     <!-- Transcations End -->
                                     <!-- Courses Tab start -->
                                     <div class="tab-pane fade" id="courses" role="tabpanel">
-                                        <form method="POST" action="#" class="pb-20" style="margin-top: 30px;">
+                                        <!-- <form method="POST" action="#" class="pb-20" style="margin-top: 30px;"> -->
                                             <table class="data-table table stripe hover nowrap">
                                                 <thead>
                                                     <tr>
@@ -285,11 +283,12 @@ if (isset($_POST['status'])) {
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                    _getUserCourses($_id);
+                                                    $userphone = _getsingleuser($_id, '_userphone');
+                                                    _getUserCourses($userphone);
                                                     ?>
                                                 </tbody>
                                             </table>
-                                        </form>
+                                        <!-- </form> -->
                                     </div>
                                     <!-- Courses Tab End -->
                                     <!-- Setting Tab start -->

@@ -676,7 +676,11 @@ function _updateuser($username, $useremail, $userpassword, $usertype, $userphone
     require('_config.php');
     require('_alert.php');
 
-    $encpassword = password_hash($userpassword, PASSWORD_DEFAULT);;
+    if(!password_verify( _getsingleuser($_id,'_userpassword'), $userpassword)){
+        $encpassword = password_hash($userpassword, PASSWORD_DEFAULT);
+    }else{
+        $encpassword = $userpassword;
+    }
 
     $sql = "UPDATE `tblusers` SET `_username`='$username' , `_useremail`='$useremail', `_userpassword`='$encpassword' , `_userphone`='$userphone' 
     , `_usertype`='$usertype' , `_userstatus`='$isactive' , `_userverify`='$isverified' WHERE `_id` = $_id";
@@ -2602,49 +2606,39 @@ function _updatepayment($id, $status)
 
 function _getUserCourses($id)
 {
-
     require('_config.php');
 
     $sql = "SELECT * FROM `tblpurchasedcourses` where `_userid`='$id' ORDER BY CreationDate DESC";
     $query = mysqli_query($conn, $sql);
     if ($query) {
-        foreach ($query as $data) {
-
+        while ($data = mysqli_fetch_assoc($query)) {
             $courseid = $data['_courseid'];
-            $coursename = _getSingleCourse($courseid, '_coursename')
-
-                ?>
-                  <tr style="margin-bottom:-25px">
-
-                      <td>
-                          <?php echo date("M j, Y", strtotime($data['CreationDate'])); ?>
-                      </td>
-
-                      <td><?php echo $coursename ?></td>
-
-                      <td>
-                          <div>
-                              <?php
-
-                              $status = $data['_coursestatus'];
-                              if ($status == true) {
-                                  ?>
-                                  <input type="text" value="<?php echo $courseid ?>" name="courseid" hidden   >
-                                  <input type="checkbox" name="status" onchange="this.form.submit()" checked data-size="small"  class="switch-btn" data-color="#f56767">
-                              <?php
-                              } else {
-                                  ?>
-                                  <input type="text" value="<?php echo $courseid ?>" name="courseid" hidden   >
-                                  <input type="checkbox" name="status" onchange="this.form.submit()" data-size="small"  class="switch-btn" data-color="#f56767">
-                              <?php
-                              }
-                              ?>
-                          </div>
-                      </td>
-
-                  </tr>
-              <?php
-        } ?> <br> <?php
+            $coursename = _getSingleCourse($courseid, '_coursename');
+            $status = $data['_coursestatus'];
+            ?>
+    
+            <form action="" method="post">
+                <tr>
+                    <td><?php echo date("M j, Y", strtotime($data['CreationDate'])); ?></td>
+                    <td><?php echo $coursename ?></td>
+                    <td>
+                        <div>
+                            <input type="hidden" name="courseid" value="<?php echo $courseid ?>">
+                            <select onchange="this.form.submit()" name="status" class="form-control">
+                                <?php if ($status == 'active') { ?>
+                                    <option value="inactive">In-Active</option>
+                                    <option value="active" selected>Active</option>
+                                <?php } else { ?>
+                                    <option value="inactive" selected>In-Active</option>
+                                    <option value="active">Active</option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+            </form>
+    
+        <?php }
     }
 }
 

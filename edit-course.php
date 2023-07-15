@@ -105,15 +105,15 @@ if (isset($_POST['submit'])) {
     }
 
     if (isset($_POST['isactive'])) {
-        $isactive = $_POST['isactive'];
-    } else {
-        $isactive = false;
+        $isactive = 'true';
+    }else{
+        $isactive = 'false';
     }
 
     if (isset($_POST['enrollstatus'])) {
-        $enrollstatus = $_POST['enrollstatus'];
-    } else {
-        $enrollstatus = false;
+        $enrollstatus = 'true';
+    }else{
+        $enrollstatus = 'false';
     }
 
     _updateCourse($id, $coursename, $detaileddescription, $previewurl, $courseDesc, $whatlearn, $requirements, $eligibitycriteria, $enrollstatus, $thumbnailimg, $bannerimg, $pricing, $isactive, $teacheremailid, $categoryid, $subcategoryid, $coursechannel, $coursetype, $startdate, $enddate, $discountprice);
@@ -368,7 +368,7 @@ if (isset($_POST['updatelesson'])) {
                                     <?php
 
                                     $status = _getSingleCourse($id, '_enrollstatus');
-                                    if ($status == true) {
+                                    if ($status == 'true') {
                                         ?>
                                         <input type="checkbox" checked class="custom-control-input" name="enrollstatus"
                                             id="isenroll">
@@ -391,7 +391,7 @@ if (isset($_POST['updatelesson'])) {
                                     <?php
 
                                     $status = _getSingleCourse($id, '_status');
-                                    if ($status == true) {
+                                    if ($status == 'true') {
                                         ?>
                                         <input type="checkbox" value="true" checked class="custom-control-input" name="isactive"
                                             id="isactive">
@@ -502,15 +502,15 @@ if (isset($_POST['updatelesson'])) {
 
                                         $coursechannel = _getSingleCourse($id, '_coursechannel');
 
-                                        if ($coursechannel == "Online") {
+                                        if ($coursechannel == "online") {
                                             ?>
-                                            <option selected value="Online">Online</option>
-                                            <option value="Offline">Offline</option>
+                                            <option selected value="online">Online</option>
+                                            <option value="offline">Offline</option>
                                             <?php
                                         } else {
                                             ?>
-                                            <option value="Online">Online</option>
-                                            <option selected value="Offline">Offline</option>
+                                            <option value="online">Online</option>
+                                            <option selected value="offline">Offline</option>
                                             <?php
                                         }
 
