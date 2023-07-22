@@ -147,6 +147,11 @@ if (isset($_POST['addlesson'])) {
             $lessondate = "No Date";
             $lessontime = "No Time";
             $recorderfile = md5($lessonfile) . $extension;
+            // changing the upload limits
+            ini_set('upload_max_filesize', '5000M');
+            ini_set('post_max_size', '5000M');
+            ini_set('max_input_time', 3000);
+            ini_set('max_execution_time', 3000);
             move_uploaded_file($_FILES["lessonfile"]["tmp_name"], "uploads/recordedlesson/" . $recorderfile);
         }
     } else {
@@ -412,15 +417,15 @@ if (isset($_POST['updatelesson'])) {
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Start Date</label>
-                                    <input class="form-control date-picker" placeholder="Select Date" name="startdate"
-                                        value="<?php echo _getSingleCourse($id, '_startdate') ?>" type="text">
+                                    <input class="form-control" placeholder="Select Date" name="startdate"
+                                        value="<?php echo _getSingleCourse($id, '_startdate') ?>" type="date">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>End Date</label>
-                                    <input class="form-control date-picker" placeholder="Select Date" name="enddate"
-                                        value="<?php echo _getSingleCourse($id, '_enddate') ?>" type="text">
+                                    <input class="form-control" placeholder="Select Date" name="enddate"
+                                        value="<?php echo _getSingleCourse($id, '_enddate') ?>" type="date">
                                 </div>
                             </div>
                         </div>

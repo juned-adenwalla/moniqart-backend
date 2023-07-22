@@ -237,14 +237,14 @@ if (isset($_POST['submit'])) {
                                 <div class="form-group">
                                     <label>Start Date</label>
                                     <input class="form-control date-picker" placeholder="Select Date" name="startdate"
-                                        type="text">
+                                        type="date">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>End Date</label>
                                     <input class="form-control date-picker" placeholder="Select Date" name="enddate"
-                                        type="text">
+                                        type="date">
                                 </div>
                             </div>
                         </div>
