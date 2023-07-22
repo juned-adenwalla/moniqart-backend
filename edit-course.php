@@ -203,6 +203,11 @@ if (isset($_POST['updatelesson'])) {
             $lessondate = null;
             $lessontime = null;
             $recorderfile = md5($lessonfile) . $extension;
+            // changing the upload limits
+            ini_set('upload_max_filesize', '5000M');
+            ini_set('post_max_size', '5000M');
+            ini_set('max_input_time', 3000);
+            ini_set('max_execution_time', 3000);
             move_uploaded_file($_FILES["lessonfile"]["tmp_name"], "uploads/recordedlesson/" . $recorderfile);
 
         }
