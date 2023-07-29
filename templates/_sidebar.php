@@ -130,11 +130,11 @@
                     </a>
                     <ul class="submenu">
                         <li><a href="purchase-template">Purchase</a></li>
-                        <!-- <li><a href="reminder-template">Reminder</a></li>
+                        <li><a href="reminder-template">Reminder</a></li>
                         <li><a href="lecture-template">Lecture</a></li>
                         <li><a href="signup-template">Signup</a></li>
                         <li><a href="cancel-template">Cancel</a></li>
-                        <li><a href="payment-template">Payment</a></li> -->
+                        <!-- <li><a href="payment-template">Payment</a></li> -->
                     </ul>
                 </li>
 
